@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2627校慶（208）禮堂計分</title>
+<style>
+  :root {
+    --cream: #ffe9ba;
+    --ink: #1c1c1c;
+    --pink: #ff5d73;
+    --green: #2f9e44;
+    --gold: #ffd84a;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: flex;
+    flex-direction: column;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif;
+  }
+  button, input { font-family: inherit; }
+  .top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 12px;
+    background: #fff8ea;
+    border-bottom: 4px solid var(--ink);
+  }
+  .brand-mini {
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    margin-right: 4px;
+  }
+  .seg { display: flex; gap: 4px; }
+  .top button, .dock button, .again, #drawAll {
+    border: 3px solid var(--ink);
+    background: #fff;
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .top button.on, .chip.on { background: var(--gold); }
+  .top button:active, .dock button:active, #drawAll:active { transform: translate(1px, 1px); box-shadow: none; }
+  .spacer { flex: 1; }
+  .banner, .livebar {
+    text-align: center;
+    font-weight: 700;
+    padding: 6px 12px;
+  }
+  .banner { background: repeating-linear-gradient(-45deg, #ffe566, #ffe566 12px, #fff3b0 12px, #fff3b0 24px); }
+  .livebar { background: #c8f5d0; }
+  .fit { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+  .side-boy {
+    position: absolute;
+    bottom: 6%;
+    object-fit: contain;
+    object-position: center bottom;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .side-boy.left { left: 8px; }
+  .side-boy.right { right: 8px; }
+  #stage {
+    position: absolute;
+    width: 1440px;
+    height: 810px;
+    transform-origin: top left;
+    background: #ffe9ba url("assets/board.png") center / 100% 100% no-repeat;
+  }
+  .rname {
+    position: absolute;
+    left: 8px;
+    width: 190px;
+    height: 64px;
+    border: none;
+    background: #ffe9ba;
+    text-align: center;
+    font-family: "DFKai-SB", "KaiTi", "Microsoft JhengHei", sans-serif;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--ink);
+    border-radius: 8px;
+  }
+  .rname[data-r="1"], .rname[data-r="3"] { background: #fff; }
+  .rname:focus { outline: none; background: #ffe9a0; }
+  .rname.on { box-shadow: inset 0 0 0 4px #e0a106; background: #ffe9a0; }
+  .rname::placeholder { color: rgba(0, 0, 0, 0.42); font-weight: 700; }
+  .cell {
+    position: absolute;
+    width: 136px;
+    height: 64px;
+    margin-left: -68px;
+    margin-top: -32px;
+    border: none;
+    background: transparent;
+    font-family: "Arial Rounded MT Bold", "Comic Sans MS", "Trebuchet MS", sans-serif;
+    font-size: 46px;
+    font-weight: 800;
+    color: var(--ink);
+    cursor: pointer;
+    border-radius: 10px;
+  }
+  .cell.total {
+    cursor: default;
+    width: 130px;
+    margin-left: -86px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 0;
+    font-size: 50px;
+    overflow: visible;
+  }
+  .medal-slot {
+    width: 34px;
+    height: 52px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .total-num {
+    width: 88px;
+    flex: none;
+    text-align: center;
+    line-height: 1;
+  }
+  .rank-medal {
+    position: static;
+    width: 32px;
+    max-height: 50px;
+    height: auto;
+    object-fit: contain;
+    pointer-events: none;
+    filter: drop-shadow(1px 2px 0 rgba(28, 28, 28, 0.28));
+  }
+  .rank-medal.pop { animation: medal-pop 0.35s ease; }
+  @keyframes medal-pop {
+    0% { transform: scale(0.45); }
+    70% { transform: scale(1.12); }
+    100% { transform: scale(1); }
+  }
+  .dock-slot {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dock-medal {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    margin: 0;
+  }
+  .cell.hot { background: rgba(255, 214, 60, 0.38); }
+  .cell.bump, .total-num.bump { animation: bump 0.38s cubic-bezier(.2, 1.4, .4, 1); }
+  .cell-editor {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 3px solid var(--ink);
+    border-radius: 10px;
+    text-align: center;
+    font-size: 36px;
+    font-weight: 800;
+    background: #fff;
+  }
+  .badge-label {
+    position: absolute;
+    left: 1016px;
+    top: 52px;
+    width: 310px;
+    height: 78px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Segoe Print", "Comic Sans MS", "DFKai-SB", "KaiTi", cursive;
+    font-size: 40px;
+    font-weight: 800;
+    color: #1a1a1a;
+    pointer-events: none;
+    letter-spacing: 0.02em;
+  }
+  .cloud {
+    position: absolute;
+    left: 1308px;
+    top: 6px;
+    width: 118px;
+    pointer-events: none;
+  }
+  @keyframes bump {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.28); }
+    100% { transform: scale(1); }
+  }
+  .dock {
+    flex: none;
+    padding: 4px 8px 6px;
+    background: #fff8ea;
+    border-top: 4px solid var(--ink);
+  }
+  .hint { margin: 0 0 3px; font-size: 12px; line-height: 1.25; }
+  .chips { display: flex; gap: 4px; margin-bottom: 4px; }
+  .chip { flex: 1; text-align: left; min-height: 26px; padding: 2px 8px; font-size: 13px; }
+  .groups { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .gcard {
+    background: #fff;
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    padding: 4px 6px;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .gcard header { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; }
+  .letter { font-size: 16px; font-weight: 900; line-height: 1; }
+  .letter.A { color: #e23d3d; } .letter.B { color: #d39b00; }
+  .letter.C { color: #2f9e44; } .letter.D { color: #1d7ed8; } .letter.E { color: #d23d8a; }
+  .who { font-size: 11px; font-weight: 700; }
+  .sumline {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: nowrap;
+    font-size: 11px;
+    margin: 0;
+    white-space: nowrap;
+  }
+  .sumline b { font-size: 14px; line-height: 1; }
+  .quiz { display: flex; gap: 4px; }
+  .quiz button { flex: 1; min-height: 28px; font-size: 14px; padding: 2px 4px; }
+  .ok { background: #b6f3c4 !important; }
+  .bad { background: #ffd0d6 !important; }
+  .draw-view {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    overflow: auto;
+    background: #ffe9ba url("assets/lottery-bg.jpg") center / cover no-repeat;
+  }
+  .draw-inner { position: relative; z-index: 1; padding: 12px 16px 20px; min-height: 100%; display: flex; flex-direction: column; }
+  .draw-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .brand-slot {
+    flex: 1;
+    min-width: 0;
+    min-height: 168px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .draw-head .brand {
+    display: block;
+    height: 168px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    object-position: center center;
+  }
+  .title-card {
+    background: #fff5e6;
+    border: 5px solid #1c1c1c;
+    border-radius: 28px;
+    box-shadow: 5px 5px 0 #1c1c1c, inset 0 0 0 5px #f4b6c8;
+    padding: 8px 28px 10px;
+    text-align: center;
+  }
+  .title-card strong { display: block; font-size: 42px; font-family: "Segoe Print", "Comic Sans MS", "DFKai-SB", cursive; }
+  .title-card span { font-weight: 700; }
+  .reels {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    align-items: start;
+  }
+  .reel {
+    min-width: 0;
+    background: rgba(255, 248, 234, 0.92);
+    border: 4px solid #1c1c1c;
+    border-radius: 18px;
+    padding: 8px;
+    box-shadow: 4px 4px 0 #1c1c1c;
+    text-align: center;
+  }
+  .reel img.head {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: auto;
+    object-fit: contain;
+    object-position: center top;
+    background: #ffe9ba;
+  }
+  .reel .clsline { margin: 0; font-size: 13px; font-weight: 800; }
+  .window {
+    position: relative;
+    margin: 6px 0;
+    height: 118px;
+    background: #fff;
+    border: 4px solid #1c1c1c;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+  .reel[data-g="A"] .window { box-shadow: inset 0 -6px 0 #e23d3d; }
+  .reel[data-g="B"] .window { box-shadow: inset 0 -6px 0 #e6b325; }
+  .reel[data-g="C"] .window { box-shadow: inset 0 -6px 0 #2f9e44; }
+  .reel[data-g="D"] .window { box-shadow: inset 0 -6px 0 #1d7ed8; }
+  .reel[data-g="E"] .window { box-shadow: inset 0 -6px 0 #d23d8a; }
+  .num {
+    font-family: "Arial Rounded MT Bold", "Comic Sans MS", sans-serif;
+    font-size: 76px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .num.spin { animation: jitter 0.08s linear infinite; filter: blur(0.4px); }
+  .num.land { animation: pop 0.45s cubic-bezier(.2, 1.5, .3, 1); }
+  @keyframes jitter {
+    50% { transform: translateY(-8px); }
+  }
+  @keyframes pop {
+    0% { transform: scale(0.4); }
+    60% { transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
+  .spark {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: 12px;
+    height: 12px;
+    margin: -6px;
+    background: var(--gold);
+    border: 2px solid #1c1c1c;
+    border-radius: 3px;
+    animation: fly 0.65s ease-out forwards;
+  }
+  @keyframes fly {
+    to { transform: rotate(var(--a)) translateY(calc(var(--d) * -1)); opacity: 0; }
+  }
+  .countline { font-size: 14px; font-weight: 700; margin: 2px 0 4px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; min-height: 32px; }
+  .pills b {
+    background: #fff;
+    border: 2px solid #1c1c1c;
+    border-radius: 999px;
+    min-width: 28px;
+    padding: 1px 6px;
+    font-size: 16px;
+  }
+  .pills b.latest { background: var(--gold); }
+  .mini { display: grid; grid-template-columns: repeat(11, 1fr); gap: 2px; margin: 6px 0; }
+  .mini i {
+    font-style: normal;
+    font-size: 11px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 3px;
+  }
+  .mini i.used { background: #1c1c1c; color: #fff; }
+  .again { width: 100%; }
+  .draw-actions { display: flex; justify-content: center; margin-top: 12px; }
+  #drawAll {
+    font-size: 30px;
+    padding: 12px 40px;
+    border-radius: 999px;
+    background: var(--pink);
+    color: white;
+    border-width: 4px;
+  }
+  #drawAll:disabled, .again:disabled, #undoBtn:disabled { opacity: 0.45; cursor: default; }
+  #fullBtn { background: var(--gold); }
+  #saveState { font-size: 12px; font-weight: 700; }
+  .gate {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(28, 20, 8, 0.45);
+    padding: 16px;
+  }
+  .gate[hidden] { display: none; }
+  .gate-card {
+    width: min(560px, 100%);
+    background: #fff8ea;
+    border: 4px solid var(--ink);
+    border-radius: 24px;
+    box-shadow: 6px 6px 0 var(--ink);
+    padding: 22px 22px 16px;
+    text-align: center;
+  }
+  .gate-card h2 { margin: 0 0 8px; font-size: 28px; }
+  .gate-card p { margin: 6px 0 14px; }
+  .gate-card button {
+    width: 100%;
+    font-size: 22px;
+    padding: 12px;
+    border-radius: 14px;
+    border: 3px solid var(--ink);
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  #pickPractice { background: #ffe566; }
+  #pickLive { background: #b6f3c4; }
+  .float-back {
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+    z-index: 5;
+    display: none;
+  }
+  body.display .gate { display: none !important; }
+  body.display .top, body.display .dock { display: none; }
+  body.display .float-back { display: block; }
+  body.screen-draw #fit, body.screen-draw .dock { display: none; }
+  body:not(.screen-draw) .draw-view { display: none; }
+  @media (max-width: 1100px) {
+    .groups { grid-template-columns: repeat(5, minmax(120px, 1fr)); }
+    .num { font-size: 56px; }
+    .window { height: 90px; }
+  }
+</style>
+</head>
+<body>
+  <div class="gate" id="modeGate" hidden>
+    <div class="gate-card">
+      <h2>開始前記低用哪一種</h2>
+      <button type="button" id="pickPractice">彩排練習</button>
+      <p>可以改分數、清空、再抽，全部只留在彩排。正式分數不會被改到。</p>
+      <button type="button" id="pickLive">正式計分</button>
+      <p>11月11日禮堂用這個。正式分數另外保存，彩排改不到它。</p>
+    </div>
+  </div>
+  <header class="top">
+    <div class="brand-mini">2627校慶（208）</div>
+    <div class="seg" id="screenSeg">
+      <button type="button" data-screen="board">計分牌</button>
+      <button type="button" data-screen="draw">抽籤</button>
+    </div>
+    <div class="seg" id="sessionSeg">
+      <button type="button" data-session="p46">高小 P4–P6</button>
+      <button type="button" data-session="p13">初小 P1–P3</button>
+    </div>
+    <div class="seg" id="modeSeg">
+      <button type="button" data-mode="rehearsal">彩排</button>
+      <button type="button" data-mode="live">正式</button>
+    </div>
+    <button type="button" id="soundBtn">聲音開</button>
+    <button type="button" id="fullBtn">全螢幕投影</button>
+    <button type="button" id="popBtn">投影視窗</button>
+    <span class="spacer"></span>
+    <span id="saveState">分數會自動存檔</span>
+    <button type="button" id="undoBtn">復原上一步</button>
+    <button type="button" id="saveFileBtn">記低分數檔</button>
+    <button type="button" id="resetScores">清空分數</button>
+    <button type="button" id="resetDraws">清空抽籤</button>
+  </header>
+  <div class="banner" id="banner">彩排練習：分數和抽籤都跟正式場分開。11月11日按「正式」再開始。</div>
+  <div class="livebar" id="livebar" hidden>正式場 · 2026年11月11日</div>
+
+  <div class="fit" id="fit">
+    <img class="side-boy left" src="assets/yw boy1.png" alt="">
+    <img class="side-boy right" src="assets/yw boy2.png" alt="">
+    <div id="stage">
+      <div class="badge-label" id="badgeLabel">P4-6計分牌</div>
+      <img class="cloud" src="assets/cloud.png" alt="">
+    </div>
+  </div>
+
+  <section class="dock" id="dock">
+    <p class="hint">點上面一列，決定 +10／−5 加進哪個回合。回合名稱在計分牌左邊自己填。點計分牌上的數字可直接改成某個分數。總分會自動把四個回合加起來。</p>
+    <div class="chips" id="chips"></div>
+    <div class="groups" id="groups"></div>
+  </section>
+
+  <section class="draw-view" id="drawView">
+    <div class="draw-inner">
+      <div class="draw-head">
+        <div class="brand-slot">
+          <img class="brand" src="assets/brand.png?v=2" alt="英華208">
+        </div>
+        <div class="title-card">
+          <strong>抽籤</strong>
+          <span id="drawSession">高小 P4–P6</span>
+        </div>
+      </div>
+      <div class="reels" id="reels"></div>
+      <div class="draw-actions">
+        <button type="button" id="drawAll">五班同時抽籤</button>
+      </div>
+    </div>
+  </section>
+  <button type="button" class="float-back" id="showChrome">顯示控制</button>
+
+<script>
+const KEY = "yw208-hall-kit-v1";
+const CLASSES = ["A", "B", "C", "D", "E"];
+const ROUNDS = 4;
+const MAXN = 33;
+const SESSIONS = {
+  p46: {
+    badge: "P4-6計分牌",
+    short: "高小 P4–P6",
+    groups: { A: "4A+5A+6A", B: "4B+5B+6B", C: "4C+5C+6C", D: "4D+5D+6D", E: "4E+5E+6E" }
+  },
+  p13: {
+    badge: "P1-3計分牌",
+    short: "初小 P1–P3",
+    groups: { A: "1A+2A+3A", B: "1B+2B+3B", C: "1C+2C+3C", D: "1D+2D+3D", E: "1E+2E+3E" }
+  }
+};
+const ROW_TOP = [368, 460, 552, 644];
+const SCORE_X = [295, 540, 789, 1031, 1284];
+const SCORE_Y = [402, 494, 586, 675, 765];
+
+function emptySession() {
+  const scores = {};
+  const drawn = {};
+  CLASSES.forEach((g) => {
+    scores[g] = [0, 0, 0, 0];
+    drawn[g] = [];
+  });
+  return { names: ["", "", "", ""], scores, drawn, activeRound: 0 };
+}
+function emptyPack() {
+  return { p46: emptySession(), p13: emptySession() };
+}
+
+let state = {
+  mode: "rehearsal",
+  session: "p46",
+  screen: "board",
+  sound: true,
+  savedAt: "",
+  undo: [],
+  rehearsal: emptyPack(),
+  live: emptyPack()
+};
+let applying = false;
+let animateNext = false;
+let spinning = false;
+let heard = false;
+let fileHandle = null;
+let saveTimer = null;
+let lastSaveNote = "分數會自動存檔";
+const shown = new WeakMap();
+const channel = ("BroadcastChannel" in window) ? new BroadcastChannel("yw208-hall") : null;
+
+function board() { return state[state.mode][state.session]; }
+function sessionInfo() { return SESSIONS[state.session]; }
+
+function repairState() {
+  ["rehearsal", "live"].forEach((mode) => {
+    if (!state[mode]) state[mode] = emptyPack();
+    ["p46", "p13"].forEach((sid) => {
+      const b = state[mode][sid];
+      if (!b || !b.scores || !b.drawn || !Array.isArray(b.names)) state[mode][sid] = emptySession();
+    });
+  });
+  if (!Array.isArray(state.undo)) state.undo = [];
+  if (state.mode !== "live" && state.mode !== "rehearsal") state.mode = "rehearsal";
+  if (state.session !== "p13" && state.session !== "p46") state.session = "p46";
+}
+function load() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (!raw || !raw.rehearsal || !raw.live) return;
+    state = raw;
+  } catch (err) { /* keep the blank rehearsal board */ }
+  repairState();
+}
+function scoreSnapshot() {
+  const b = board();
+  return {
+    mode: state.mode,
+    session: state.session,
+    scores: JSON.parse(JSON.stringify(b.scores)),
+    names: b.names.slice(),
+    activeRound: b.activeRound
+  };
+}
+function pushUndo() {
+  if (applying) return;
+  state.undo.push(scoreSnapshot());
+  if (state.undo.length > 30) state.undo.shift();
+}
+function undoLast() {
+  if (!state.undo.length || spinning) return;
+  const prev = state.undo.pop();
+  state.mode = prev.mode;
+  state.session = prev.session;
+  const b = board();
+  b.scores = prev.scores;
+  b.names = prev.names;
+  b.activeRound = prev.activeRound;
+  clearShown();
+  animateNext = false;
+  commit(false);
+  render();
+}
+function exportData() {
+  return {
+    savedAt: state.savedAt || new Date().toISOString(),
+    mode: state.mode,
+    session: state.session,
+    screen: state.screen,
+    sound: state.sound,
+    undo: state.undo,
+    rehearsal: state.rehearsal,
+    live: state.live
+  };
+}
+function applyImported(data) {
+  if (!data || !data.rehearsal || !data.live) return false;
+  state.mode = data.mode === "live" ? "live" : "rehearsal";
+  state.session = data.session === "p13" ? "p13" : "p46";
+  state.screen = data.screen === "draw" ? "draw" : (state.screen || "board");
+  state.sound = data.sound !== false;
+  state.savedAt = data.savedAt || "";
+  state.undo = Array.isArray(data.undo) ? data.undo : [];
+  state.rehearsal = data.rehearsal;
+  state.live = data.live;
+  repairState();
+  return true;
+}
+function idb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open("yw208-files", 1);
+    req.onupgradeneeded = () => req.result.createObjectStore("handles");
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+function rememberHandle(handle) {
+  return idb().then((db) => new Promise((resolve, reject) => {
+    const tx = db.transaction("handles", "readwrite");
+    tx.objectStore("handles").put(handle, "scores");
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  }));
+}
+function recallHandle() {
+  return idb().then((db) => new Promise((resolve, reject) => {
+    const tx = db.transaction("handles", "readonly");
+    const req = tx.objectStore("handles").get("scores");
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  })).catch(() => null);
+}
+async function writeOpfs() {
+  if (!navigator.storage || !navigator.storage.getDirectory) return false;
+  const root = await navigator.storage.getDirectory();
+  const fh = await root.getFileHandle("yw208-scores.json", { create: true });
+  const w = await fh.createWritable();
+  await w.write(JSON.stringify(exportData()));
+  await w.close();
+  return true;
+}
+async function readOpfs() {
+  try {
+    const root = await navigator.storage.getDirectory();
+    const fh = await root.getFileHandle("yw208-scores.json");
+    const file = await fh.getFile();
+    return JSON.parse(await file.text());
+  } catch (err) { return null; }
+}
+async function writeChosenFile() {
+  if (!fileHandle) return false;
+  const perm = await fileHandle.queryPermission({ mode: "readwrite" });
+  if (perm !== "granted") return false;
+  const w = await fileHandle.createWritable();
+  await w.write(JSON.stringify(exportData(), null, 2));
+  await w.close();
+  return true;
+}
+function markSaved(where) {
+  const t = new Date();
+  const clock = [t.getHours(), t.getMinutes(), t.getSeconds()].map((n) => String(n).padStart(2, "0")).join(":");
+  lastSaveNote = "已自動存檔 " + clock + (where ? " · " + where : "");
+  const el = document.getElementById("saveState");
+  if (el) el.textContent = lastSaveNote;
+}
+async function flushSave() {
+  let where = "瀏覽器";
+  try { if (await writeOpfs()) where = "瀏覽器檔案"; } catch (err) { /* local copy still saved */ }
+  try { if (await writeChosenFile()) where = "分數檔"; } catch (err) { /* keep the browser copy */ }
+  markSaved(where);
+}
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flushSave, 400);
+}
+function commit(animate) {
+  state.savedAt = new Date().toISOString();
+  localStorage.setItem(KEY, JSON.stringify(state));
+  if (!applying && channel) channel.postMessage({ type: "state", state, animate: !!animate });
+  if (!applying) scheduleSave();
+}
+
+let audioCtx = null;
+function audio() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  if (!audioCtx) audioCtx = new AC();
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+function blip(freq, dur, type, vol, slide) {
+  if (!state.sound) return;
+  const c = audio();
+  if (!c) return;
+  const o = c.createOscillator();
+  const g = c.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(freq, c.currentTime);
+  if (slide) o.frequency.exponentialRampToValueAtTime(slide, c.currentTime + dur);
+  g.gain.setValueAtTime(vol, c.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+  o.connect(g);
+  g.connect(c.destination);
+  o.start();
+  o.stop(c.currentTime + dur + 0.02);
+}
+function soundScore(delta) {
+  if (delta > 0) {
+    blip(784, 0.07, "square", 0.055);
+    setTimeout(() => blip(1175, 0.11, "square", 0.045), 55);
+  } else if (delta < 0) {
+    blip(392, 0.13, "triangle", 0.05, 196);
+  }
+}
+let shakeTimer = null;
+function noiseBurst(seconds, volume) {
+  if (!state.sound) return;
+  const c = audio();
+  if (!c) return;
+  const count = Math.max(1, Math.floor(c.sampleRate * seconds));
+  const buf = c.createBuffer(1, count, c.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < count; i++) data[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * i / count);
+  const src = c.createBufferSource();
+  const filter = c.createBiquadFilter();
+  filter.type = "bandpass";
+  filter.frequency.value = 780;
+  filter.Q.value = 0.6;
+  const g = c.createGain();
+  g.gain.value = volume;
+  src.buffer = buf;
+  src.connect(filter);
+  filter.connect(g);
+  g.connect(c.destination);
+  src.start();
+}
+function startShake() {
+  stopShake();
+  noiseBurst(0.12, 0.18);
+  shakeTimer = setInterval(() => noiseBurst(0.07, 0.12), 95);
+}
+function stopShake() {
+  if (shakeTimer) clearInterval(shakeTimer);
+  shakeTimer = null;
+}
+function soundRoll() { startShake(); }
+function soundLand(i) {
+  const notes = [523, 659, 784, 988, 1175];
+  blip(notes[i], 0.22, "sine", 0.09);
+  blip(notes[i] * 2, 0.16, "triangle", 0.035);
+  blip(notes[i] * 3, 0.12, "sine", 0.018);
+}
+
+function buildBoard() {
+  const stage = document.getElementById("stage");
+  for (let r = 0; r < ROUNDS; r++) {
+    const input = document.createElement("input");
+    input.className = "rname";
+    input.maxLength = 12;
+    input.placeholder = "輸入名稱";
+    input.dataset.r = String(r);
+    input.style.top = ROW_TOP[r] + "px";
+    input.addEventListener("focus", () => {
+      board().activeRound = r;
+      animateNext = false;
+      render();
+      commit(false);
+    });
+    input.addEventListener("input", () => {
+      board().names[r] = input.value;
+      fitName(input);
+      commit(false);
+      renderChips();
+    });
+    stage.appendChild(input);
+  }
+  CLASSES.forEach((g, gi) => {
+    for (let r = 0; r < ROUNDS; r++) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "cell";
+      btn.dataset.g = g;
+      btn.dataset.r = String(r);
+      btn.style.left = SCORE_X[gi] + "px";
+      btn.style.top = SCORE_Y[r] + "px";
+      btn.textContent = "0";
+      btn.addEventListener("click", () => editCell(btn));
+      stage.appendChild(btn);
+    }
+    const total = document.createElement("div");
+    total.className = "cell total";
+    total.dataset.g = g;
+    total.style.left = SCORE_X[gi] + "px";
+    total.style.top = SCORE_Y[4] + "px";
+    total.innerHTML = '<span class="medal-slot"><img class="rank-medal" data-medal="' + g + '" alt="" hidden></span><span class="total-num">0</span>';
+    stage.appendChild(total);
+  });
+
+  const chips = document.getElementById("chips");
+  const groups = document.getElementById("groups");
+  for (let r = 0; r < ROUNDS; r++) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "chip";
+    chip.dataset.r = String(r);
+    chip.addEventListener("click", () => {
+      board().activeRound = r;
+      animateNext = false;
+      render();
+      commit(false);
+    });
+    chips.appendChild(chip);
+  }
+  CLASSES.forEach((g) => {
+    const card = document.createElement("article");
+    card.className = "gcard";
+    card.innerHTML =
+      '<header><span class="letter ' + g + '">' + g + '</span><span class="who" data-g="' + g + '"></span></header>' +
+      '<div class="sumline"><span>總分</span><span class="dock-slot"><img class="dock-medal" data-dock-medal="' + g + '" alt="" hidden></span><b data-sum="' + g + '">0</b></div>' +
+      '<div class="quiz">' +
+      '<button type="button" class="bad" data-add="-5" data-g="' + g + '">−5</button>' +
+      '<button type="button" class="ok" data-add="10" data-g="' + g + '">+10</button>' +
+      "</div>";
+    groups.appendChild(card);
+  });
+  groups.addEventListener("click", (ev) => {
+    const btn = ev.target.closest("button[data-add]");
+    if (!btn) return;
+    addScore(btn.dataset.g, Number(btn.dataset.add));
+  });
+
+  const reels = document.getElementById("reels");
+  CLASSES.forEach((g) => {
+    const reel = document.createElement("article");
+    reel.className = "reel";
+    reel.dataset.g = g;
+    reel.innerHTML =
+      '<img class="head" src="assets/head-' + g + '.png" alt="' + g + '">' +
+      '<p class="clsline" data-who="' + g + '"></p>' +
+      '<div class="window"><span class="num">—</span></div>' +
+      '<div class="countline">已抽 <b data-count="' + g + '">0</b>／33 · 剩餘 <b data-left="' + g + '">33</b></div>' +
+      '<div class="pills" data-pills="' + g + '"></div>' +
+      '<div class="mini" data-mini="' + g + '"></div>' +
+      '<button type="button" class="again" data-g="' + g + '">這班再抽</button>';
+    const mini = reel.querySelector("[data-mini]");
+    for (let n = 1; n <= MAXN; n++) {
+      const i = document.createElement("i");
+      i.textContent = String(n);
+      i.dataset.n = String(n);
+      mini.appendChild(i);
+    }
+    reels.appendChild(reel);
+  });
+  reels.addEventListener("click", (ev) => {
+    const btn = ev.target.closest(".again");
+    if (!btn || spinning) return;
+    drawOne(btn.dataset.g);
+  });
+}
+
+function fitName(input) {
+  const len = (input.value || "").trim().length;
+  input.style.fontSize = len <= 4 ? "30px" : len <= 6 ? "24px" : "18px";
+}
+function clearShown() {
+  document.querySelectorAll(".cell").forEach((el) => shown.delete(el));
+}
+function paintNum(el, n) {
+  const host = el.querySelector(".total-num") || el;
+  const prev = shown.has(el) ? shown.get(el) : n;
+  shown.set(el, n);
+  if (el.querySelector("input")) return;
+  if (animateNext && prev !== n) {
+    if (!heard) {
+      soundScore(n - prev);
+      heard = true;
+    }
+    host.classList.remove("bump");
+    void host.offsetWidth;
+    host.classList.add("bump");
+    const from = prev;
+    const t0 = performance.now();
+    const step = (now) => {
+      const p = Math.min(1, (now - t0) / 380);
+      const eased = 1 - Math.pow(1 - p, 3);
+      host.textContent = String(Math.round(from + (n - from) * eased));
+      if (p < 1 && shown.get(el) === n) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  } else {
+    host.textContent = String(n);
+  }
+}
+
+function renderChips() {
+  const b = board();
+  document.querySelectorAll(".chip").forEach((chip) => {
+    const r = Number(chip.dataset.r);
+    const name = (b.names[r] || "").trim();
+    chip.textContent = name || ("第 " + (r + 1) + " 列");
+    chip.classList.toggle("on", r === b.activeRound);
+  });
+}
+function rankMap(sums) {
+  const unique = [...new Set(CLASSES.map((g) => sums[g]))].sort((a, b) => b - a);
+  const placeByScore = {};
+  if (unique.length > 1) unique.slice(0, 3).forEach((score, i) => { placeByScore[score] = i + 1; });
+  const out = {};
+  CLASSES.forEach((g) => { if (placeByScore[sums[g]]) out[g] = placeByScore[sums[g]]; });
+  return out;
+}
+function paintMedal(img, place) {
+  const labels = { 1: "第1名", 2: "第2名", 3: "第3名" };
+  if (!place) {
+    img.hidden = true;
+    img.alt = "";
+    img.dataset.rank = "";
+    return;
+  }
+  const next = String(place);
+  if (img.dataset.rank !== next) {
+    img.classList.remove("pop");
+    void img.offsetWidth;
+    img.classList.add("pop");
+  }
+  img.dataset.rank = next;
+  img.src = "assets/medal-" + place + ".png";
+  img.alt = labels[place];
+  img.hidden = false;
+}
+function renderScores() {
+  const b = board();
+  const sums = {};
+  CLASSES.forEach((g) => {
+    let sum = 0;
+    b.scores[g].forEach((n, r) => {
+      sum += n;
+      const el = document.querySelector('.cell[data-g="' + g + '"][data-r="' + r + '"]');
+      el.classList.toggle("hot", r === b.activeRound);
+      paintNum(el, n);
+    });
+    sums[g] = sum;
+    paintNum(document.querySelector('.cell.total[data-g="' + g + '"]'), sum);
+    const sumEl = document.querySelector('[data-sum="' + g + '"]');
+    if (sumEl) sumEl.textContent = String(sum);
+    const who = document.querySelector('.who[data-g="' + g + '"]');
+    if (who) who.textContent = sessionInfo().groups[g];
+  });
+  const ranks = rankMap(sums);
+  CLASSES.forEach((g) => {
+    paintMedal(document.querySelector('.rank-medal[data-medal="' + g + '"]'), ranks[g] || 0);
+    const dock = document.querySelector('[data-dock-medal="' + g + '"]');
+    if (dock) paintMedal(dock, ranks[g] || 0);
+  });
+}
+function renderNames() {
+  const b = board();
+  document.querySelectorAll(".rname").forEach((input) => {
+    const r = Number(input.dataset.r);
+    input.classList.toggle("on", r === b.activeRound);
+    if (document.activeElement === input) return;
+    if (input.value !== b.names[r]) input.value = b.names[r];
+    fitName(input);
+  });
+}
+function pool(g) {
+  const used = new Set(board().drawn[g]);
+  const out = [];
+  for (let n = 1; n <= MAXN; n++) if (!used.has(n)) out.push(n);
+  return out;
+}
+function renderLottery() {
+  const info = sessionInfo();
+  document.getElementById("drawSession").textContent = info.short + " · 學號 1–33";
+  CLASSES.forEach((g) => {
+    const drawn = board().drawn[g];
+    const who = document.querySelector('[data-who="' + g + '"]');
+    if (who) who.textContent = info.groups[g];
+    document.querySelector('[data-count="' + g + '"]').textContent = String(drawn.length);
+    document.querySelector('[data-left="' + g + '"]').textContent = String(MAXN - drawn.length);
+    const pills = document.querySelector('[data-pills="' + g + '"]');
+    pills.innerHTML = "";
+    drawn.forEach((n, idx) => {
+      const b = document.createElement("b");
+      b.textContent = String(n);
+      if (idx === drawn.length - 1) b.className = "latest";
+      pills.appendChild(b);
+    });
+    document.querySelectorAll('[data-mini="' + g + '"] i').forEach((cell) => {
+      cell.classList.toggle("used", drawn.includes(Number(cell.dataset.n)));
+    });
+    const num = document.querySelector('.reel[data-g="' + g + '"] .num');
+    if (!num.classList.contains("spin")) {
+      num.textContent = drawn.length ? String(drawn[drawn.length - 1]) : "—";
+    }
+    document.querySelector('.again[data-g="' + g + '"]').disabled = spinning || drawn.length >= MAXN;
+  });
+  const drawAll = document.getElementById("drawAll");
+  const anyLeft = CLASSES.some((g) => board().drawn[g].length < MAXN);
+  drawAll.disabled = spinning || !anyLeft;
+}
+function render() {
+  heard = false;
+  const info = sessionInfo();
+  document.getElementById("badgeLabel").textContent = info.badge;
+  document.body.classList.toggle("screen-draw", state.screen === "draw");
+  document.getElementById("banner").hidden = state.mode !== "rehearsal";
+  document.getElementById("livebar").hidden = state.mode !== "live";
+  document.getElementById("soundBtn").textContent = state.sound ? "聲音開" : "聲音關";
+  const undoBtn = document.getElementById("undoBtn");
+  if (undoBtn) undoBtn.disabled = !state.undo.length || spinning;
+  const saveEl = document.getElementById("saveState");
+  if (saveEl) saveEl.textContent = lastSaveNote;
+  document.querySelectorAll("#screenSeg button").forEach((btn) => {
+    btn.classList.toggle("on", btn.dataset.screen === state.screen);
+  });
+  document.querySelectorAll("#sessionSeg button").forEach((btn) => {
+    btn.classList.toggle("on", btn.dataset.session === state.session);
+  });
+  document.querySelectorAll("#modeSeg button").forEach((btn) => {
+    btn.classList.toggle("on", btn.dataset.mode === state.mode);
+  });
+  renderNames();
+  renderChips();
+  renderScores();
+  renderLottery();
+  animateNext = false;
+  if (state.screen === "board") requestAnimationFrame(fit);
+}
+
+function setScore(g, r, value) {
+  const b = board();
+  const next = Math.round(value);
+  if (!Number.isFinite(next) || next === b.scores[g][r]) {
+    animateNext = false;
+    render();
+    return;
+  }
+  pushUndo();
+  b.scores[g][r] = next;
+  b.activeRound = r;
+  animateNext = true;
+  commit(true);
+  render();
+}
+function addScore(g, delta) {
+  const b = board();
+  const r = b.activeRound;
+  setScore(g, r, b.scores[g][r] + delta);
+}
+function editCell(btn) {
+  if (btn.querySelector("input")) return;
+  const g = btn.dataset.g;
+  const r = Number(btn.dataset.r);
+  board().activeRound = r;
+  animateNext = false;
+  render();
+  const input = document.createElement("input");
+  input.className = "cell-editor";
+  input.inputMode = "numeric";
+  input.value = String(board().scores[g][r]);
+  btn.textContent = "";
+  btn.appendChild(input);
+  input.focus();
+  input.select();
+  let done = false;
+  const finish = (ok) => {
+    if (done) return;
+    done = true;
+    const raw = input.value.trim();
+    input.remove();
+    if (ok && raw !== "" && Number.isFinite(Number(raw))) setScore(g, r, Number(raw));
+    else render();
+  };
+  input.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter") finish(true);
+    if (ev.key === "Escape") finish(false);
+  });
+  input.addEventListener("blur", () => finish(true));
+}
+
+function burst(numEl) {
+  const host = numEl.parentElement;
+  for (let i = 0; i < 12; i++) {
+    const s = document.createElement("i");
+    s.className = "spark";
+    s.style.setProperty("--a", (i * 30 + Math.random() * 18) + "deg");
+    s.style.setProperty("--d", (36 + Math.random() * 42) + "px");
+    s.style.background = ["#ffd84a", "#ff8fab", "#7ed957", "#7ec8ff", "#fff"][i % 5];
+    host.appendChild(s);
+    setTimeout(() => s.remove(), 700);
+  }
+}
+function playColumn(g, index, finalNumber) {
+  const num = document.querySelector('.reel[data-g="' + g + '"] .num');
+  if (finalNumber == null) {
+    num.classList.remove("spin");
+    num.textContent = "滿";
+    return;
+  }
+  num.classList.add("spin");
+  const timer = setInterval(() => {
+    num.textContent = String(1 + Math.floor(Math.random() * MAXN));
+  }, 45);
+  setTimeout(() => {
+    clearInterval(timer);
+    num.classList.remove("spin");
+    num.textContent = String(finalNumber);
+    num.classList.remove("land");
+    void num.offsetWidth;
+    num.classList.add("land");
+    soundLand(index);
+    burst(num);
+  }, 1100 + index * 340);
+}
+function playDraw(results, done) {
+  spinning = true;
+  soundRoll();
+  renderLottery();
+  CLASSES.forEach((g, i) => playColumn(g, i, results[g]));
+  setTimeout(() => {
+    stopShake();
+    spinning = false;
+    if (done) done();
+    else renderLottery();
+  }, 1100 + 4 * 340 + 120);
+}
+function drawAll() {
+  if (spinning) return;
+  const results = {};
+  let any = false;
+  CLASSES.forEach((g) => {
+    const left = pool(g);
+    if (!left.length) results[g] = null;
+    else {
+      results[g] = left[Math.floor(Math.random() * left.length)];
+      any = true;
+    }
+  });
+  if (!any) return;
+  if (channel) channel.postMessage({ type: "draw", results });
+  playDraw(results, () => {
+    CLASSES.forEach((g) => {
+      if (results[g] != null) board().drawn[g].push(results[g]);
+    });
+    commit(false);
+    render();
+  });
+}
+function drawOne(g) {
+  if (spinning) return;
+  const left = pool(g);
+  if (!left.length) return;
+  const n = left[Math.floor(Math.random() * left.length)];
+  const index = CLASSES.indexOf(g);
+  if (channel) channel.postMessage({ type: "drawOne", g, n, index });
+  spinning = true;
+  startShake();
+  renderLottery();
+  playColumn(g, index, n);
+  setTimeout(() => {
+    stopShake();
+    spinning = false;
+    board().drawn[g].push(n);
+    commit(false);
+    render();
+  }, 1100 + index * 340 + 80);
+}
+
+function fit() {
+  const wrap = document.getElementById("fit");
+  const stage = document.getElementById("stage");
+  const s = Math.min(wrap.clientWidth / 1440, wrap.clientHeight / 810);
+  const gap = Math.max(0, (wrap.clientWidth - 1440 * s) / 2);
+  stage.style.transform = "scale(" + s + ")";
+  stage.style.left = gap + "px";
+  stage.style.top = Math.max(0, (wrap.clientHeight - 810 * s) / 2) + "px";
+  const room = Math.max(0, gap - 24);
+  const boyRatio = 563 / 404;
+  let boyW = room;
+  let boyH = Math.round(boyW * boyRatio);
+  const maxH = Math.floor(wrap.clientHeight * 0.78);
+  if (boyH > maxH) {
+    boyH = maxH;
+    boyW = Math.round(boyH / boyRatio);
+  }
+  document.querySelectorAll(".side-boy").forEach((img) => {
+    img.style.width = boyW + "px";
+    img.style.height = boyH + "px";
+  });
+}
+
+function resetScores() {
+  const label = state.mode === "rehearsal" ? "彩排" : "正式";
+  if (!confirm("清空「" + label + " · " + sessionInfo().short + "」的分數和回合名稱？抽籤號碼會留下。")) return;
+  pushUndo();
+  const keep = board().drawn;
+  const fresh = emptySession();
+  fresh.drawn = keep;
+  state[state.mode][state.session] = fresh;
+  clearShown();
+  animateNext = false;
+  commit(false);
+  render();
+}
+function resetDraws() {
+  const label = state.mode === "rehearsal" ? "彩排" : "正式";
+  if (!confirm("清空「" + label + " · " + sessionInfo().short + "」已抽的學號？五班可以重新從 1 抽到 33。")) return;
+  CLASSES.forEach((g) => { board().drawn[g] = []; });
+  commit(false);
+  render();
+}
+
+document.getElementById("screenSeg").addEventListener("click", (ev) => {
+  const btn = ev.target.closest("button");
+  if (!btn) return;
+  state.screen = btn.dataset.screen;
+  animateNext = false;
+  commit(false);
+  render();
+});
+document.getElementById("sessionSeg").addEventListener("click", (ev) => {
+  const btn = ev.target.closest("button");
+  if (!btn) return;
+  state.session = btn.dataset.session;
+  clearShown();
+  animateNext = false;
+  commit(false);
+  render();
+});
+document.getElementById("modeSeg").addEventListener("click", (ev) => {
+  const btn = ev.target.closest("button");
+  if (!btn) return;
+  state.mode = btn.dataset.mode;
+  clearShown();
+  animateNext = false;
+  commit(false);
+  render();
+});
+document.getElementById("soundBtn").addEventListener("click", () => {
+  state.sound = !state.sound;
+  if (state.sound) audio();
+  commit(false);
+  render();
+});
+function syncFullBtn() {
+  const on = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  document.getElementById("fullBtn").textContent = on ? "退出全螢幕" : "全螢幕投影";
+}
+document.getElementById("fullBtn").addEventListener("click", () => {
+  const root = document.documentElement;
+  const on = document.fullscreenElement || document.webkitFullscreenElement;
+  if (!on) {
+    const ask = root.requestFullscreen || root.webkitRequestFullscreen;
+    if (ask) ask.call(root);
+  } else {
+    const leave = document.exitFullscreen || document.webkitExitFullscreen;
+    if (leave) leave.call(document);
+  }
+});
+document.addEventListener("fullscreenchange", syncFullBtn);
+document.addEventListener("webkitfullscreenchange", syncFullBtn);
+document.getElementById("undoBtn").addEventListener("click", undoLast);
+document.getElementById("pickPractice").addEventListener("click", () => chooseMode("rehearsal"));
+document.getElementById("pickLive").addEventListener("click", () => chooseMode("live"));
+document.getElementById("saveFileBtn").addEventListener("click", async () => {
+  const payload = JSON.stringify(exportData(), null, 2);
+  if (!window.showSaveFilePicker) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([payload], { type: "application/json" }));
+    a.download = "校慶分數.json";
+    a.click();
+    markSaved("已下載");
+    return;
+  }
+  try {
+    fileHandle = await showSaveFilePicker({
+      suggestedName: "校慶分數.json",
+      types: [{ description: "分數檔", accept: { "application/json": [".json"] } }]
+    });
+    await rememberHandle(fileHandle);
+    await writeChosenFile();
+    markSaved("分數檔");
+  } catch (err) {
+    if (!err || err.name !== "AbortError") markSaved("存檔未完成");
+  }
+});
+function chooseMode(mode) {
+  state.mode = mode;
+  clearShown();
+  animateNext = false;
+  document.getElementById("modeGate").hidden = true;
+  commit(false);
+  render();
+}
+document.getElementById("popBtn").addEventListener("click", () => {
+  const url = new URL(location.href);
+  url.searchParams.set("view", "display");
+  window.open(url.toString(), "yw208display");
+});
+document.getElementById("showChrome").addEventListener("click", () => {
+  document.body.classList.remove("display");
+  fit();
+});
+document.getElementById("resetScores").addEventListener("click", resetScores);
+document.getElementById("resetDraws").addEventListener("click", resetDraws);
+document.getElementById("drawAll").addEventListener("click", drawAll);
+document.addEventListener("pointerdown", () => { if (state.sound) audio(); });
+document.addEventListener("keydown", (ev) => {
+  const typing = ev.target && ev.target.matches && ev.target.matches("input, textarea");
+  if (!typing && (ev.key === "f" || ev.key === "F") && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
+    ev.preventDefault();
+    document.getElementById("fullBtn").click();
+  }
+  if (!typing && (ev.ctrlKey || ev.metaKey) && !ev.shiftKey && ev.key.toLowerCase() === "z") {
+    ev.preventDefault();
+    undoLast();
+  }
+});
+window.addEventListener("resize", fit);
+
+if (channel) {
+  channel.onmessage = (ev) => {
+    const msg = ev.data || {};
+    if (msg.type === "state") {
+      applying = true;
+      const prevSession = state.session;
+      const prevMode = state.mode;
+      state = msg.state;
+      if (prevSession !== state.session || prevMode !== state.mode) clearShown();
+      animateNext = !!msg.animate;
+      render();
+      applying = false;
+    } else if (msg.type === "draw") {
+      playDraw(msg.results, null);
+    } else if (msg.type === "drawOne") {
+      spinning = true;
+      startShake();
+      renderLottery();
+      playColumn(msg.g, msg.index, msg.n);
+      setTimeout(() => { stopShake(); spinning = false; renderLottery(); }, 1100 + msg.index * 340 + 80);
+    }
+  };
+}
+
+load();
+buildBoard();
+const isDisplay = new URLSearchParams(location.search).get("view") === "display";
+if (isDisplay) document.body.classList.add("display");
+else document.getElementById("modeGate").hidden = false;
+render();
+setInterval(() => { if (!applying) flushSave(); }, 15000);
+
+(async () => {
+  fileHandle = await recallHandle();
+  let localAt = state.savedAt || "";
+  if (!localStorage.getItem(KEY)) {
+    const backup = await readOpfs();
+    if (backup && applyImported(backup)) {
+      localStorage.setItem(KEY, JSON.stringify(state));
+      localAt = state.savedAt || "";
+      render();
+    }
+  }
+  if (!fileHandle) return;
+  try {
+    const perm = await fileHandle.queryPermission({ mode: "readwrite" });
+    if (perm !== "granted") return;
+    const data = JSON.parse(await (await fileHandle.getFile()).text());
+    if (data && data.savedAt && data.savedAt > localAt && applyImported(data)) {
+      localStorage.setItem(KEY, JSON.stringify(state));
+      render();
+      markSaved("分數檔");
+    }
+  } catch (err) { /* keep the scores already on this computer */ }
+})();
+</script>
+</body>
+</html>
