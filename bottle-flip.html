@@ -44,7 +44,7 @@
     border: 4px solid var(--ink);
     border-radius: 22px;
     box-shadow: 6px 6px 0 var(--ink);
-    padding: 14px 14px 16px;
+    padding: 8px 12px 6px;
   }
   .top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
   .top a, .top button, .pts button, .bonus, .undo {
@@ -193,9 +193,9 @@
     60% { transform: translate(-50%, -16px) scale(1.2); }
     100% { transform: translate(-50%, 0) scale(1); }
   }
-  .label { display: flex; align-items: center; gap: 4px; font-weight: 900; font-size: 20px; margin-top: 6px; }
-  .label svg { width: 22px; height: 22px; }
-  .meta { font-size: 13px; font-weight: 700; min-height: 1.2em; }
+  .label { display: flex; align-items: center; gap: 4px; font-weight: 900; font-size: 16px; margin-top: 2px; line-height: 1; }
+  .label svg { width: 16px; height: 16px; }
+  .meta { font-size: 12px; font-weight: 700; min-height: 1em; line-height: 1.1; }
   .phrase { text-align: center; font-weight: 800; margin: 10px 0 4px; }
   .bottles { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
   .bottle {
@@ -208,8 +208,18 @@
     transition: transform 0.35s ease, opacity 0.35s;
   }
   .bottle.up { opacity: 1; transform: rotate(0deg); }
-  .pts { display: flex; flex-wrap: nowrap; gap: 6px; flex: none; margin-top: 10px; }
-  .pts button { flex: 1; min-width: 0; font-size: 20px; min-height: 52px; }
+  .pts { display: flex; flex-wrap: nowrap; gap: 4px; flex: none; margin-top: 6px; }
+  .pts button {
+    flex: 1;
+    min-width: 0;
+    font-size: 15px;
+    line-height: 1;
+    min-height: 0;
+    padding: 3px 0 4px;
+    border-width: 2px;
+    border-radius: 8px;
+    box-shadow: 1px 1px 0 var(--ink);
+  }
   .pts button:disabled, .bonus:disabled, .undo:disabled { opacity: 0.4; cursor: default; }
   .row2 { display: flex; gap: 8px; margin-top: 8px; }
   .bonus { flex: 1; background: #ffd84a; font-size: 20px; min-height: 52px; }
