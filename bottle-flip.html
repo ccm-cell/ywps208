@@ -85,17 +85,32 @@
   .classes button[data-g="E"].on { background: #ffd6ea; }
   .chart {
     display: flex;
-    align-items: flex-end;
+    align-items: stretch;
     gap: 10px;
     flex: 1 1 auto;
-    min-height: 180px;
+    min-height: 0;
     height: auto;
-    margin-bottom: 52px;
+    margin: 0;
     padding: 8px 8px 0;
     border-bottom: 4px solid var(--ink);
   }
-  .col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
-  .bar-wrap { width: 100%; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+  .col {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  .bar-wrap {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
   .bar {
     width: 72%;
     min-height: 12px;
@@ -193,8 +208,8 @@
     transition: transform 0.35s ease, opacity 0.35s;
   }
   .bottle.up { opacity: 1; transform: rotate(0deg); }
-  .pts { display: flex; flex-wrap: wrap; gap: 6px; }
-  .pts button { flex: 1; min-width: 52px; font-size: 20px; min-height: 48px; }
+  .pts { display: flex; flex-wrap: nowrap; gap: 6px; flex: none; margin-top: 10px; }
+  .pts button { flex: 1; min-width: 0; font-size: 20px; min-height: 52px; }
   .pts button:disabled, .bonus:disabled, .undo:disabled { opacity: 0.4; cursor: default; }
   .row2 { display: flex; gap: 8px; margin-top: 8px; }
   .bonus { flex: 1; background: #ffd84a; font-size: 20px; min-height: 52px; }
@@ -206,7 +221,6 @@
   body:not(.ops) .classes,
   body:not(.ops) .phrase,
   body:not(.ops) .bottles,
-  body:not(.ops) .pts,
   body:not(.ops) .row2,
   body:not(.ops) .hint { display: none; }
   .fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
@@ -228,7 +242,6 @@
       <div id="opsPanel" style="display:none">
       <p class="phrase">每組 11 枝瓶。成功幾枝就按幾分，排成 YW208 再按加 5 分。同一班可以一組接一組計。</p>
       <div class="bottles" id="bottles"></div>
-      <div class="pts" id="pts"></div>
       <div class="row2">
         <button type="button" class="bonus" id="bonusBtn">加 5 分</button>
         <button type="button" class="save" id="saveBtn">寫入第三欄</button>
@@ -237,6 +250,7 @@
       </div>
       <p class="hint" id="hint">先按 A–E 選班，再按該組成功的枝數。加 5 分每班、每一組都可以再按。寫入第三欄才把總分送到計分牌。</p>
       </div>
+      <div class="pts" id="pts"></div>
     </div>
   </div>
   <canvas class="fx" id="fx"></canvas>
