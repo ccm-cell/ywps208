@@ -189,6 +189,13 @@
   .reset { background: #ffe0e0; }
   .undo { min-width: 140px; font-size: 18px; min-height: 52px; }
   .hint { margin: 8px 0 0; font-size: 14px; font-weight: 700; }
+  body:not(.ops) .top,
+  body:not(.ops) .classes,
+  body:not(.ops) .phrase,
+  body:not(.ops) .bottles,
+  body:not(.ops) .pts,
+  body:not(.ops) .row2,
+  body:not(.ops) .hint { display: none; }
   .fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
 </style>
 </head>
@@ -445,6 +452,13 @@ function build() {
     btn.addEventListener("click", () => { hall.session = btn.dataset.session; commit(); render(); });
   });
   document.addEventListener("keydown", (ev) => {
+    if (ev.ctrlKey && ev.shiftKey && ev.key.toLowerCase() === "h") {
+      ev.preventDefault();
+      document.body.classList.toggle("ops");
+      try { sessionStorage.setItem("yw208-bottle-ops", document.body.classList.contains("ops") ? "1" : "0"); } catch (e) {}
+      return;
+    }
+    if (!document.body.classList.contains("ops")) return;
     if (ev.target.matches && ev.target.matches("input, textarea")) return;
     const map = { a: "A", b: "B", c: "C", d: "D", e: "E" };
     if (map[ev.key.toLowerCase()] && !ev.ctrlKey && !ev.metaKey) { active = map[ev.key.toLowerCase()]; render(); }
@@ -606,6 +620,7 @@ function undo() {
 }
 
 loadAll();
+try { if (sessionStorage.getItem("yw208-bottle-ops") === "1") document.body.classList.add("ops"); } catch (e) {}
 build();
 render();
 if (channel) {

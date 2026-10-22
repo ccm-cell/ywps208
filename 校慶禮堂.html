@@ -37,7 +37,7 @@
     margin-right: 4px;
   }
   .seg { display: flex; gap: 4px; }
-  .top button, .dock button, .again, #drawAll {
+  .top button, .top a, .dock button, .again, #drawAll {
     border: 3px solid var(--ink);
     background: #fff;
     border-radius: 12px;
@@ -47,7 +47,8 @@
     box-shadow: 2px 2px 0 var(--ink);
   }
   .top button.on, .chip.on { background: var(--gold); }
-  .top button:active, .dock button:active, #drawAll:active { transform: translate(1px, 1px); box-shadow: none; }
+  .top button:active, .top a:active, .dock button:active, #drawAll:active { transform: translate(1px, 1px); box-shadow: none; }
+  .top a { color: inherit; text-decoration: none; display: inline-block; }
   .spacer { flex: 1; }
   .banner, .livebar {
     text-align: center;
@@ -450,6 +451,7 @@
       <button type="button" data-screen="board">計分牌</button>
       <button type="button" data-screen="draw">抽籤</button>
     </div>
+    <a href="bottle-flip.html">翻瓶計分</a>
     <div class="seg" id="sessionSeg">
       <button type="button" data-session="p46">高小 P4–P6</button>
       <button type="button" data-session="p13">初小 P1–P3</button>
