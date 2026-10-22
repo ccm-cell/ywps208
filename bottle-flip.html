@@ -118,7 +118,7 @@
     border-bottom: none;
     border-radius: 12px 12px 0 0;
     transform-origin: bottom center;
-    transition: height 1.05s cubic-bezier(.22, .72, .2, 1);
+    transition: height 0.85s cubic-bezier(0.22, 1.45, 0.36, 1);
     position: relative;
     overflow: visible;
   }
@@ -157,6 +157,19 @@
   .col.live .bar {
     animation: flash 0.7s ease-in-out infinite;
     box-shadow: 0 0 0 4px #fff, 0 0 0 7px #e0a106;
+  }
+  .col.grow .bar { animation: bar-glow 0.75s ease; }
+  .col.grow .rider { animation: rider-bob 0.75s cubic-bezier(0.22, 1.45, 0.36, 1); }
+  @keyframes bar-glow {
+    0% { filter: brightness(1); box-shadow: 0 0 0 0 rgba(255, 216, 74, 0); }
+    40% { filter: brightness(1.6); box-shadow: 0 0 18px 2px rgba(255, 216, 74, 0.9); }
+    100% { filter: brightness(1); box-shadow: 0 0 0 0 rgba(255, 216, 74, 0); }
+  }
+  @keyframes rider-bob {
+    0% { transform: translateX(-50%) translateY(0); }
+    45% { transform: translateX(-50%) translateY(-12px); }
+    72% { transform: translateX(-50%) translateY(3px); }
+    100% { transform: translateX(-50%) translateY(0); }
   }
   @keyframes flash {
     0%, 100% { filter: brightness(1); }
@@ -210,6 +223,8 @@
   .bottle.up { opacity: 1; transform: rotate(0deg); }
   .pts { display: flex; flex-wrap: nowrap; gap: 4px; flex: none; margin-top: 6px; }
   .pts button {
+    position: relative;
+    overflow: hidden;
     flex: 1;
     min-width: 0;
     font-size: 15px;
@@ -219,6 +234,26 @@
     border-width: 2px;
     border-radius: 8px;
     box-shadow: 1px 1px 0 var(--ink);
+  }
+  .pts button.ripple::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 216, 74, 0.75);
+    transform: translate(-50%, -50%) scale(1);
+    animation: ripple 0.45s ease-out forwards;
+    pointer-events: none;
+  }
+  @keyframes ripple {
+    to { transform: translate(-50%, -50%) scale(14); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bar { transition: none; }
+    .col.grow .bar, .col.grow .rider, .pts button.ripple::after { animation: none; }
   }
   .pts button:disabled, .bonus:disabled, .undo:disabled { opacity: 0.4; cursor: default; }
   .row2 { display: flex; gap: 8px; margin-top: 8px; }
@@ -484,6 +519,13 @@ function build() {
     b.addEventListener("click", () => addPoints(n));
     pts.appendChild(b);
   }
+  pts.addEventListener("pointerdown", (ev) => {
+    const btn = ev.target.closest("button");
+    if (!btn || (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) return;
+    btn.classList.remove("ripple");
+    void btn.offsetWidth;
+    btn.classList.add("ripple");
+  });
   BOTTLES.forEach((ch) => {
     const s = document.createElement("div");
     s.className = "bottle";
@@ -558,6 +600,7 @@ function addBonus() {
   playWind();
   fireworks(document.querySelector('.col[data-g="' + g + '"] .bar'));
   const col = document.querySelector('.col[data-g="' + g + '"]');
+  pulseGrow(col);
   col.classList.remove("finale");
   void col.offsetWidth;
   col.classList.add("finale");
@@ -600,12 +643,20 @@ function finalize() {
   commit();
   render();
 }
+function pulseGrow(col) {
+  if (!col || (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) return;
+  col.classList.remove("grow");
+  void col.offsetWidth;
+  col.classList.add("grow");
+  setTimeout(() => col.classList.remove("grow"), 780);
+}
 function runSteps(g, n) {
   const finalSum = bottleTotal(g);
   const gen = (popGen[g] || 0) + 1;
   popGen[g] = gen;
   render();
   const col = document.querySelector('.col[data-g="' + g + '"]');
+  pulseGrow(col);
   const start = finalSum - n;
   col.querySelector(".score-pop").textContent = String(start);
   let step = 0;
@@ -646,7 +697,7 @@ function undo() {
     saveMeta();
   }
   const col = document.querySelector('.col[data-g="' + (last.g || active) + '"]');
-  if (col) col.classList.remove("shake", "finale", "pop");
+  if (col) col.classList.remove("shake", "finale", "pop", "grow");
   const canvas = document.getElementById("fx");
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
