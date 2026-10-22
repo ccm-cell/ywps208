@@ -9,7 +9,9 @@
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; }
   body {
-    min-height: 100%;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
     color: var(--ink);
     font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
     background: #ffe9ba url("assets/bottle-flip-bg.jpg") center top / cover no-repeat fixed;
@@ -25,11 +27,19 @@
     background: url("assets/bottle-flip-bg.jpg") center top / cover no-repeat fixed;
   }
   .wrap {
-    width: min(980px, calc(100% - 24px));
+    width: min(1180px, calc(100% - 36px));
     margin: 0 auto;
-    padding: max(12.4vw, 21.6vh) 0 28px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: max(12.4vw, 21.6vh) 0 12px;
   }
   .panel {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
     background: rgba(255, 248, 234, 0.92);
     border: 4px solid var(--ink);
     border-radius: 22px;
@@ -77,7 +87,10 @@
     display: flex;
     align-items: flex-end;
     gap: 10px;
-    height: 280px;
+    flex: 1 1 auto;
+    min-height: 180px;
+    height: auto;
+    margin-bottom: 52px;
     padding: 8px 8px 0;
     border-bottom: 4px solid var(--ink);
   }
@@ -290,11 +303,20 @@ function board() { return hall[hall.mode][hall.session]; }
 function packKey(g) { return hall.mode + "|" + hall.session + "|" + g; }
 function bottleTotal(g) { return meta.totals[packKey(g)] || 0; }
 function shownOf(g) { return meta.shown[packKey(g)] || 0; }
+function barMax() {
+  const chart = document.getElementById("chart");
+  const col = chart && chart.querySelector(".bar-wrap");
+  if (!col || col.clientHeight < 80) return 248;
+  const riderH = Math.round(col.clientWidth * 0.72 * 1.48 * (1777 / 3508));
+  return Math.max(80, col.clientHeight - riderH - 10);
+}
 function barHeight(score) {
-  if (score <= 0) return 12;
+  const maxH = barMax();
+  if (score <= 0) return Math.max(12, Math.round(maxH * 0.04));
   const early = Math.min(score, 30) * 2.2;
   const later = Math.max(0, score - 30) * 0.85;
-  return Math.round(Math.min(248, 12 + early + later));
+  const scaled = (12 + early + later) * (maxH / 248);
+  return Math.round(Math.min(maxH, Math.max(12, scaled)));
 }
 function saveMeta() { localStorage.setItem(META, JSON.stringify(meta)); }
 function commit() {
@@ -625,6 +647,8 @@ loadAll();
 setOps(false);
 build();
 render();
+requestAnimationFrame(render);
+window.addEventListener("resize", () => render());
 if (channel) {
   channel.onmessage = (ev) => {
     const msg = ev.data || {};
