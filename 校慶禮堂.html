@@ -23,17 +23,21 @@
   }
   button, input { font-family: inherit; }
   .top {
+    --top-fs: 13px;
     display: flex;
     flex-wrap: nowrap;
     gap: 4px;
     align-items: center;
-    padding: 6px 8px;
+    width: 100%;
+    min-width: 0;
+    padding: 5px 6px;
     background: #fff8ea;
     border-bottom: 4px solid var(--ink);
+    font-size: var(--top-fs);
   }
   .brand-mini {
     font-weight: 800;
-    font-size: 13px;
+    font-size: var(--top-fs);
     letter-spacing: 0;
     margin-right: 2px;
     white-space: nowrap;
@@ -51,17 +55,18 @@
   }
   .top button.on, .chip.on { background: var(--gold); }
   .top button, .top a {
-    padding: 4px 7px;
-    font-size: 13px;
+    padding: 3px 6px;
+    font-size: var(--top-fs);
+    line-height: 1.2;
     border-width: 2px;
-    border-radius: 10px;
+    border-radius: 8px;
     white-space: nowrap;
     flex: none;
     box-shadow: 1px 1px 0 var(--ink);
   }
   .top button:active, .top a:active, .dock button:active, #drawAll:active { transform: translate(1px, 1px); box-shadow: none; }
   .top a { color: inherit; text-decoration: none; display: inline-block; }
-  .spacer { flex: 1 1 8px; min-width: 4px; }
+  .spacer { flex: 1 1 0; min-width: 0; }
   .banner, .livebar {
     text-align: center;
     font-weight: 700;
@@ -399,8 +404,9 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    flex: 0 1 11em;
+    flex: 0 1 auto;
     min-width: 0;
+    max-width: 16em;
   }
   .gate {
     position: fixed;
@@ -456,15 +462,6 @@
 </style>
 </head>
 <body>
-  <div class="gate" id="modeGate" hidden>
-    <div class="gate-card">
-      <h2>開始前記低用哪一種</h2>
-      <button type="button" id="pickPractice">彩排練習</button>
-      <p>可以改分數、清空、再抽，全部只留在彩排。正式分數不會被改到。</p>
-      <button type="button" id="pickLive">正式計分</button>
-      <p>11月11日禮堂用這個。正式分數另外保存，彩排改不到它。</p>
-    </div>
-  </div>
   <header class="top">
     <div class="brand-mini">2627校慶（208）</div>
     <div class="seg" id="screenSeg">
@@ -476,10 +473,6 @@
       <button type="button" data-session="p46">高小 P4–P6</button>
       <button type="button" data-session="p13">初小 P1–P3</button>
     </div>
-    <div class="seg" id="modeSeg">
-      <button type="button" data-mode="rehearsal">彩排</button>
-      <button type="button" data-mode="live">正式</button>
-    </div>
     <button type="button" id="soundBtn">聲音開</button>
     <button type="button" id="fullBtn">全螢幕投影</button>
     <button type="button" id="popBtn">投影視窗</button>
@@ -490,8 +483,6 @@
     <button type="button" id="resetScores">清空分數</button>
     <button type="button" id="resetDraws">清空抽籤</button>
   </header>
-  <div class="banner" id="banner">彩排練習：分數和抽籤都跟正式場分開。11月11日按「正式」再開始。</div>
-  <div class="livebar" id="livebar" hidden>正式場 · 2026年11月11日</div>
 
   <div class="fit" id="fit">
     <img class="side-boy left" src="assets/yw boy1.png" alt="">
@@ -593,7 +584,7 @@ function repairState() {
     });
   });
   if (!Array.isArray(state.undo)) state.undo = [];
-  if (state.mode !== "live" && state.mode !== "rehearsal") state.mode = "rehearsal";
+  state.mode = "rehearsal";
   if (state.session !== "p13" && state.session !== "p46") state.session = "p46";
 }
 function load() {
@@ -622,7 +613,7 @@ function pushUndo() {
 function undoLast() {
   if (!state.undo.length || spinning) return;
   const prev = state.undo.pop();
-  state.mode = prev.mode;
+  state.mode = "rehearsal";
   state.session = prev.session;
   const b = board();
   b.scores = prev.scores;
@@ -647,7 +638,7 @@ function exportData() {
 }
 function applyImported(data) {
   if (!data || !data.rehearsal || !data.live) return false;
-  state.mode = data.mode === "live" ? "live" : "rehearsal";
+  state.mode = "rehearsal";
   state.session = data.session === "p13" ? "p13" : "p46";
   state.screen = data.screen === "draw" ? "draw" : (state.screen || "board");
   state.sound = data.sound !== false;
@@ -714,6 +705,7 @@ function markSaved(where) {
   lastSaveNote = "已自動存檔 " + clock + (where ? " · " + where : "");
   const el = document.getElementById("saveState");
   if (el) el.textContent = lastSaveNote;
+  fitTopBar();
 }
 async function flushSave() {
   let where = "瀏覽器";
@@ -1056,8 +1048,6 @@ function render() {
   const info = sessionInfo();
   document.getElementById("badgeLabel").textContent = info.badge;
   document.body.classList.toggle("screen-draw", state.screen === "draw");
-  document.getElementById("banner").hidden = state.mode !== "rehearsal";
-  document.getElementById("livebar").hidden = state.mode !== "live";
   document.getElementById("soundBtn").textContent = state.sound ? "聲音開" : "聲音關";
   const undoBtn = document.getElementById("undoBtn");
   if (undoBtn) undoBtn.disabled = !state.undo.length || spinning;
@@ -1069,15 +1059,13 @@ function render() {
   document.querySelectorAll("#sessionSeg button").forEach((btn) => {
     btn.classList.toggle("on", btn.dataset.session === state.session);
   });
-  document.querySelectorAll("#modeSeg button").forEach((btn) => {
-    btn.classList.toggle("on", btn.dataset.mode === state.mode);
-  });
   renderNames();
   renderChips();
   renderScores();
   renderLottery();
   animateNext = false;
   if (state.screen === "board") requestAnimationFrame(fit);
+  requestAnimationFrame(fitTopBar);
 }
 
 function setScore(g, r, value) {
@@ -1243,8 +1231,7 @@ function fit() {
 }
 
 function resetScores() {
-  const label = state.mode === "rehearsal" ? "彩排" : "正式";
-  if (!confirm("清空「" + label + " · " + sessionInfo().short + "」的分數和回合名稱？抽籤號碼會留下。")) return;
+  if (!confirm("清空「" + sessionInfo().short + "」的分數和回合名稱？抽籤號碼會留下。")) return;
   pushUndo();
   const keep = board().drawn;
   const fresh = emptySession();
@@ -1256,8 +1243,7 @@ function resetScores() {
   render();
 }
 function resetDraws() {
-  const label = state.mode === "rehearsal" ? "彩排" : "正式";
-  if (!confirm("清空「" + label + " · " + sessionInfo().short + "」已抽的學號？五班可以重新從 1 抽到 33。")) return;
+  if (!confirm("清空「" + sessionInfo().short + "」已抽的學號？五班可以重新從 1 抽到 33。")) return;
   CLASSES.forEach((g) => { board().drawn[g] = []; });
   commit(false);
   render();
@@ -1280,15 +1266,6 @@ document.getElementById("sessionSeg").addEventListener("click", (ev) => {
   commit(false);
   render();
 });
-document.getElementById("modeSeg").addEventListener("click", (ev) => {
-  const btn = ev.target.closest("button");
-  if (!btn) return;
-  state.mode = btn.dataset.mode;
-  clearShown();
-  animateNext = false;
-  commit(false);
-  render();
-});
 document.getElementById("soundBtn").addEventListener("click", () => {
   state.sound = !state.sound;
   if (state.sound) audio();
@@ -1298,6 +1275,17 @@ document.getElementById("soundBtn").addEventListener("click", () => {
 function syncFullBtn() {
   const on = !!(document.fullscreenElement || document.webkitFullscreenElement);
   document.getElementById("fullBtn").textContent = on ? "退出全螢幕" : "全螢幕投影";
+  fitTopBar();
+}
+function fitTopBar() {
+  const top = document.querySelector(".top");
+  if (!top) return;
+  let size = 13;
+  top.style.setProperty("--top-fs", size + "px");
+  while (size > 10 && top.scrollWidth > top.clientWidth + 1) {
+    size -= 0.5;
+    top.style.setProperty("--top-fs", size + "px");
+  }
 }
 document.getElementById("fullBtn").addEventListener("click", () => {
   const root = document.documentElement;
@@ -1313,8 +1301,6 @@ document.getElementById("fullBtn").addEventListener("click", () => {
 document.addEventListener("fullscreenchange", syncFullBtn);
 document.addEventListener("webkitfullscreenchange", syncFullBtn);
 document.getElementById("undoBtn").addEventListener("click", undoLast);
-document.getElementById("pickPractice").addEventListener("click", () => chooseMode("rehearsal"));
-document.getElementById("pickLive").addEventListener("click", () => chooseMode("live"));
 document.getElementById("saveFileBtn").addEventListener("click", async () => {
   const payload = JSON.stringify(exportData(), null, 2);
   if (!window.showSaveFilePicker) {
@@ -1337,14 +1323,6 @@ document.getElementById("saveFileBtn").addEventListener("click", async () => {
     if (!err || err.name !== "AbortError") markSaved("存檔未完成");
   }
 });
-function chooseMode(mode) {
-  state.mode = mode;
-  clearShown();
-  animateNext = false;
-  document.getElementById("modeGate").hidden = true;
-  commit(false);
-  render();
-}
 document.getElementById("popBtn").addEventListener("click", () => {
   const url = new URL(location.href);
   url.searchParams.set("view", "display");
@@ -1369,7 +1347,7 @@ document.addEventListener("keydown", (ev) => {
     undoLast();
   }
 });
-window.addEventListener("resize", fit);
+window.addEventListener("resize", () => { fit(); fitTopBar(); });
 
 if (channel) {
   channel.onmessage = (ev) => {
@@ -1379,6 +1357,8 @@ if (channel) {
       const prevSession = state.session;
       const prevMode = state.mode;
       state = msg.state;
+      state.mode = "rehearsal";
+      repairState();
       if (prevSession !== state.session || prevMode !== state.mode) clearShown();
       animateNext = !!msg.animate;
       render();
@@ -1399,7 +1379,6 @@ load();
 buildBoard();
 const isDisplay = new URLSearchParams(location.search).get("view") === "display";
 if (isDisplay) document.body.classList.add("display");
-else document.getElementById("modeGate").hidden = false;
 render();
 setInterval(() => { if (!applying) flushSave(); }, 15000);
 

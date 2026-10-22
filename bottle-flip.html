@@ -206,8 +206,6 @@
       <div id="opsHead" style="display:none">
       <div class="top">
         <a href="校慶禮堂.html">返回計分牌</a>
-        <button type="button" id="modeRe">彩排</button>
-        <button type="button" id="modeLive">正式</button>
         <button type="button" data-session="p46">高小</button>
         <button type="button" data-session="p13">初小</button>
       </div>
@@ -275,7 +273,7 @@ function repair(state) {
       });
     });
   });
-  if (state.mode !== "live") state.mode = "rehearsal";
+  state.mode = "rehearsal";
   if (state.session !== "p13") state.session = state.session === "p46" ? "p46" : "p46";
   if (!Array.isArray(state.undo)) state.undo = [];
 }
@@ -450,8 +448,6 @@ function build() {
   document.getElementById("saveBtn").addEventListener("click", finalize);
   document.getElementById("resetBtn").addEventListener("click", resetScores);
   document.getElementById("undoBtn").addEventListener("click", undo);
-  document.getElementById("modeRe").addEventListener("click", () => setMode("rehearsal"));
-  document.getElementById("modeLive").addEventListener("click", () => setMode("live"));
   document.querySelectorAll("[data-session]").forEach((btn) => {
     btn.addEventListener("click", () => { hall.session = btn.dataset.session; commit(); render(); });
   });
@@ -465,11 +461,7 @@ function build() {
     if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "z") { ev.preventDefault(); undo(); }
   });
 }
-function setMode(mode) { hall.mode = mode; commit(); render(); }
-
 function render() {
-  document.getElementById("modeRe").classList.toggle("on", hall.mode === "rehearsal");
-  document.getElementById("modeLive").classList.toggle("on", hall.mode === "live");
   document.querySelectorAll("[data-session]").forEach((btn) => btn.classList.toggle("on", btn.dataset.session === hall.session));
   document.querySelectorAll("#classes button").forEach((btn) => btn.classList.toggle("on", btn.dataset.g === active));
   CLASSES.forEach((g) => {
@@ -487,11 +479,10 @@ function render() {
   document.querySelectorAll("#pts button").forEach((btn) => { btn.disabled = false; });
   document.getElementById("bonusBtn").disabled = false;
   document.getElementById("undoBtn").disabled = !meta.history.length;
-  const who = hall.mode === "live" ? "正式" : "彩排";
   const ses = hall.session === "p13" ? "初小" : "高小";
   const postedNote = justPosted ? "各班總分已寫入計分牌第三欄（該欄沒有名稱，這裡不會改它）。" : "總分先留在這頁。按「寫入第三欄」才送到計分牌的第三欄，不會加進第一欄。";
   document.getElementById("hint").textContent =
-    "正在計 " + who + " · " + ses + " · " + active + " 班。1–10 和加 5 分可以一直按。" + postedNote + "復原記住最近 " + meta.history.length + " 步。";
+    "正在計 " + ses + " · " + active + " 班。1–10 和加 5 分可以一直按。" + postedNote + "復原記住最近 " + meta.history.length + " 步。";
 }
 
 function remember(entry) {
@@ -528,9 +519,8 @@ function addBonus() {
   render();
 }
 function resetScores() {
-  const who = hall.mode === "live" ? "正式" : "彩排";
   const ses = hall.session === "p13" ? "初小" : "高小";
-  if (!window.confirm("確定把「" + who + " · " + ses + "」的翻瓶分數歸零？長條圖和計分牌第三欄會一起變回 0。其他欄不會改。")) return;
+  if (!window.confirm("確定把「" + ses + "」的翻瓶分數歸零？長條圖和計分牌第三欄會一起變回 0。其他欄不會改。")) return;
   stopDings();
   justPosted = false;
   const mode = hall.mode;
