@@ -203,6 +203,7 @@
   <div class="mast" aria-hidden="true"></div>
   <div class="wrap">
     <div class="panel">
+      <div id="opsHead" style="display:none">
       <div class="top">
         <a href="校慶禮堂.html">返回計分牌</a>
         <button type="button" id="modeRe">彩排</button>
@@ -211,7 +212,9 @@
         <button type="button" data-session="p13">初小</button>
       </div>
       <div class="classes" id="classes"></div>
+      </div>
       <div class="chart" id="chart"></div>
+      <div id="opsPanel" style="display:none">
       <p class="phrase">每組 11 枝瓶。成功幾枝就按幾分，排成 YW208 再按加 5 分。同一班可以一組接一組計。</p>
       <div class="bottles" id="bottles"></div>
       <div class="pts" id="pts"></div>
@@ -222,6 +225,7 @@
         <button type="button" class="undo" id="undoBtn">復原上一步</button>
       </div>
       <p class="hint" id="hint">先按 A–E 選班，再按該組成功的枝數。加 5 分每班、每一組都可以再按。寫入第三欄才把總分送到計分牌。</p>
+      </div>
     </div>
   </div>
   <canvas class="fx" id="fx"></canvas>
@@ -452,12 +456,6 @@ function build() {
     btn.addEventListener("click", () => { hall.session = btn.dataset.session; commit(); render(); });
   });
   document.addEventListener("keydown", (ev) => {
-    if (ev.ctrlKey && ev.shiftKey && ev.key.toLowerCase() === "h") {
-      ev.preventDefault();
-      document.body.classList.toggle("ops");
-      try { sessionStorage.setItem("yw208-bottle-ops", document.body.classList.contains("ops") ? "1" : "0"); } catch (e) {}
-      return;
-    }
     if (!document.body.classList.contains("ops")) return;
     if (ev.target.matches && ev.target.matches("input, textarea")) return;
     const map = { a: "A", b: "B", c: "C", d: "D", e: "E" };
@@ -619,8 +617,22 @@ function undo() {
   render();
 }
 
+function setOps(on) {
+  document.body.classList.toggle("ops", on);
+  ["opsHead", "opsPanel"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = on ? "block" : "none";
+  });
+}
+window.addEventListener("keydown", (ev) => {
+  const keyH = ev.code === "KeyH" || (ev.key && ev.key.toLowerCase() === "h");
+  if (!((ev.ctrlKey || ev.metaKey) && ev.shiftKey && keyH)) return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  setOps(!document.body.classList.contains("ops"));
+}, true);
 loadAll();
-try { if (sessionStorage.getItem("yw208-bottle-ops") === "1") document.body.classList.add("ops"); } catch (e) {}
+setOps(false);
 build();
 render();
 if (channel) {
