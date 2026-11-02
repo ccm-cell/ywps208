@@ -925,25 +925,7 @@ if (channel) {
 window.addEventListener("storage", (ev) => {
   if (ev.key === KEY || ev.key === META) { loadAll(); render(); }
 });
-const fullBtn = document.getElementById("fullBtn");
-function syncFullBtn() {
-  const on = !!(document.fullscreenElement || document.webkitFullscreenElement);
-  document.body.classList.toggle("is-full", on);
-  fullBtn.textContent = on ? "退出全螢幕" : "全螢幕";
-}
-fullBtn.addEventListener("click", () => {
-  const on = document.fullscreenElement || document.webkitFullscreenElement;
-  if (on) {
-    const exit = document.exitFullscreen || document.webkitExitFullscreen;
-    if (exit) exit.call(document);
-    return;
-  }
-  const root = document.documentElement;
-  const req = root.requestFullscreen || root.webkitRequestFullscreen;
-  if (req) req.call(root);
-});
-document.addEventListener("fullscreenchange", syncFullBtn);
-document.addEventListener("webkitfullscreenchange", syncFullBtn);
 </script>
+<script src="assets/fullscreen.js"></script>
 </body>
 </html>

@@ -397,7 +397,22 @@
     border-width: 4px;
   }
   #drawAll:disabled, .again:disabled, #undoBtn:disabled { opacity: 0.45; cursor: default; }
-  #fullBtn { background: var(--gold); }
+  #fullBtn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 80;
+    border: 3px solid var(--ink);
+    background: #fff;
+    color: var(--ink);
+    font-family: inherit;
+    font-weight: 900;
+    font-size: 16px;
+    border-radius: 12px;
+    padding: 8px 12px;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
   #saveState {
     font-size: 12px;
     font-weight: 700;
@@ -474,7 +489,6 @@
       <button type="button" data-session="p13">初小 P1–P3</button>
     </div>
     <button type="button" id="soundBtn">聲音開</button>
-    <button type="button" id="fullBtn">全螢幕投影</button>
     <button type="button" id="popBtn">投影視窗</button>
     <span class="spacer"></span>
     <span id="saveState">分數會自動存檔</span>
@@ -483,6 +497,7 @@
     <button type="button" id="resetScores">清空分數</button>
     <button type="button" id="resetDraws">清空抽籤</button>
   </header>
+  <button type="button" id="fullBtn">全螢幕</button>
 
   <div class="fit" id="fit">
     <img class="side-boy left" src="assets/yw boy1.png" alt="">
@@ -1272,11 +1287,6 @@ document.getElementById("soundBtn").addEventListener("click", () => {
   commit(false);
   render();
 });
-function syncFullBtn() {
-  const on = !!(document.fullscreenElement || document.webkitFullscreenElement);
-  document.getElementById("fullBtn").textContent = on ? "退出全螢幕" : "全螢幕投影";
-  fitTopBar();
-}
 function fitTopBar() {
   const top = document.querySelector(".top");
   if (!top) return;
@@ -1287,19 +1297,6 @@ function fitTopBar() {
     top.style.setProperty("--top-fs", size + "px");
   }
 }
-document.getElementById("fullBtn").addEventListener("click", () => {
-  const root = document.documentElement;
-  const on = document.fullscreenElement || document.webkitFullscreenElement;
-  if (!on) {
-    const ask = root.requestFullscreen || root.webkitRequestFullscreen;
-    if (ask) ask.call(root);
-  } else {
-    const leave = document.exitFullscreen || document.webkitExitFullscreen;
-    if (leave) leave.call(document);
-  }
-});
-document.addEventListener("fullscreenchange", syncFullBtn);
-document.addEventListener("webkitfullscreenchange", syncFullBtn);
 document.getElementById("undoBtn").addEventListener("click", undoLast);
 document.getElementById("saveFileBtn").addEventListener("click", async () => {
   const payload = JSON.stringify(exportData(), null, 2);
@@ -1406,5 +1403,6 @@ setInterval(() => { if (!applying) flushSave(); }, 15000);
   } catch (err) { /* keep the scores already on this computer */ }
 })();
 </script>
+<script src="assets/fullscreen.js"></script>
 </body>
 </html>
