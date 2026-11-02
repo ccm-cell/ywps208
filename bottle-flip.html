@@ -285,8 +285,6 @@
       </div>
       <div class="chart" id="chart"></div>
       <div id="opsPanel" style="display:none">
-      <p class="phrase">每組 11 枝瓶。成功幾枝就按幾分，排成 YW208 再按加 5 分。同一班可以一組接一組計。</p>
-      <div class="bottles" id="bottles"></div>
       <div class="row2">
         <button type="button" class="bonus" id="bonusBtn">加 5 分</button>
         <button type="button" class="save" id="saveBtn">寫入第三欄</button>
@@ -307,7 +305,6 @@ const KEY = "yw208-hall-kit-v1";
 const META = "yw208-bottle-flip-v1";
 const CLASSES = ["A", "B", "C", "D", "E"];
 const BOTTLE_COUNT = 11;
-const BOTTLES = ["Y", "W", "2", "0", "8", "Y", "W", "2", "0", "8", "Y"];
 const SCORE_COL = 2;
 const channel = ("BroadcastChannel" in window) ? new BroadcastChannel("yw208-hall") : null;
 const dingTimers = [];
@@ -494,7 +491,6 @@ function build() {
   const classes = document.getElementById("classes");
   const chart = document.getElementById("chart");
   const pts = document.getElementById("pts");
-  const bottles = document.getElementById("bottles");
   CLASSES.forEach((g) => {
     const b = document.createElement("button");
     b.type = "button";
@@ -525,12 +521,6 @@ function build() {
     btn.classList.remove("ripple");
     void btn.offsetWidth;
     btn.classList.add("ripple");
-  });
-  BOTTLES.forEach((ch) => {
-    const s = document.createElement("div");
-    s.className = "bottle";
-    s.textContent = ch;
-    bottles.appendChild(s);
   });
   document.getElementById("bonusBtn").addEventListener("click", addBonus);
   document.getElementById("saveBtn").addEventListener("click", finalize);
@@ -563,7 +553,6 @@ function render() {
     col.querySelector(".meta").textContent = "本組 " + shownOf(g) + "/" + BOTTLE_COUNT + (posted === sum && sum > 0 ? " · 已入第三欄" : "");
     col.classList.toggle("live", g === active);
   });
-  document.querySelectorAll(".bottle").forEach((el, i) => el.classList.toggle("up", i < shownOf(active)));
   document.querySelectorAll("#pts button").forEach((btn) => { btn.disabled = false; });
   document.getElementById("bonusBtn").disabled = false;
   document.getElementById("undoBtn").disabled = !meta.history.length;
