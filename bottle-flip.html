@@ -98,6 +98,22 @@
     box-shadow: 3px 3px 0 var(--ink);
   }
   #lightStart:disabled { opacity: 0.55; cursor: default; }
+  #fullBtn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 80;
+    border: 3px solid var(--ink);
+    background: #fff;
+    color: var(--ink);
+    font-family: inherit;
+    font-weight: 900;
+    font-size: 16px;
+    border-radius: 12px;
+    padding: 8px 12px;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
   .wrap {
     width: min(1180px, calc(100% - 36px));
     margin: 0 auto;
@@ -341,11 +357,20 @@
   body:not(.ops) .bottles,
   body:not(.ops) .row2,
   body:not(.ops) .hint { display: none; }
-  .fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
+  body.is-full .classes { display: flex; }
+  body.is-full:not(.ops) #opsPanel { display: block !important; }
+  body.is-full:not(.ops) .row2 { display: flex; }
+  body.is-full:not(.ops) #opsPanel .save,
+  body.is-full:not(.ops) #opsPanel .reset,
+  body.is-full:not(.ops) #opsPanel .undo,
+  body.is-full:not(.ops) #opsPanel .hint { display: none !important; }
+  body.is-full .wrap { padding-top: calc(max(13vw, 22.8vh) + 8px); }
+  .fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 55; }
 </style>
 </head>
 <body>
   <div class="mast" aria-hidden="true"></div>
+  <button type="button" id="fullBtn">全螢幕</button>
   <div class="lightbar" id="lightbar">
     <div class="sign" id="sign" role="img" aria-label="YW208"></div>
     <button type="button" id="lightStart">開始</button>
@@ -358,8 +383,8 @@
         <button type="button" data-session="p46">高小</button>
         <button type="button" data-session="p13">初小</button>
       </div>
-      <div class="classes" id="classes"></div>
       </div>
+      <div class="classes" id="classes"></div>
       <div class="chart" id="chart"></div>
       <div id="opsPanel" style="display:none">
       <div class="row2">
@@ -900,6 +925,25 @@ if (channel) {
 window.addEventListener("storage", (ev) => {
   if (ev.key === KEY || ev.key === META) { loadAll(); render(); }
 });
+const fullBtn = document.getElementById("fullBtn");
+function syncFullBtn() {
+  const on = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  document.body.classList.toggle("is-full", on);
+  fullBtn.textContent = on ? "退出全螢幕" : "全螢幕";
+}
+fullBtn.addEventListener("click", () => {
+  const on = document.fullscreenElement || document.webkitFullscreenElement;
+  if (on) {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) exit.call(document);
+    return;
+  }
+  const root = document.documentElement;
+  const req = root.requestFullscreen || root.webkitRequestFullscreen;
+  if (req) req.call(root);
+});
+document.addEventListener("fullscreenchange", syncFullBtn);
+document.addEventListener("webkitfullscreenchange", syncFullBtn);
 </script>
 </body>
 </html>
