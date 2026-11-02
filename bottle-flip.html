@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>翻瓶計分 · YWPS208</title>
+<title>翻瓶計分 · YW208</title>
 <style>
   :root { --ink: #1c1c1c; --cream: #ffe9ba; }
   * { box-sizing: border-box; }
@@ -347,7 +347,7 @@
 <body>
   <div class="mast" aria-hidden="true"></div>
   <div class="lightbar" id="lightbar">
-    <div class="sign" id="sign" role="img" aria-label="YWPS208"></div>
+    <div class="sign" id="sign" role="img" aria-label="YW208"></div>
     <button type="button" id="lightStart">開始</button>
   </div>
   <div class="wrap">
@@ -791,13 +791,11 @@ function setupLightSign() {
   const glyphs = [
     ["10101", "10101", "01010", "00100", "00100", "00100", "00100"],
     ["1000001", "1000001", "1000001", "1010101", "1010101", "1100011", "0100010"],
-    ["11110", "10001", "10001", "11110", "10000", "10000", "10000"],
-    ["01111", "10000", "10000", "01110", "00001", "00001", "11110"],
     ["01110", "10001", "00001", "00110", "01000", "10000", "11111"],
     ["01110", "10001", "10001", "10001", "10001", "10001", "01110"],
     ["01110", "10001", "10001", "01110", "10001", "10001", "01110"]
   ];
-  const colors = ["#ff4030", "#ff8c1a", "#ffe14a", "#3dcb4a", "#3aa0ff", "#b06bff", "#2fce55"];
+  const colors = ["#ff4030", "#ff8c1a", "#3aa0ff", "#b06bff", "#2fce55"];
   const bulbs = [];
   glyphs.forEach((rows, gi) => {
     const g = document.createElement("div");
