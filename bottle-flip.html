@@ -818,44 +818,18 @@ function setupLightSign() {
   });
   let lightTimers = [];
   let lightRunning = false;
-  let stopMusic = function () {};
+  const music = new Audio("assets/" + encodeURIComponent("1 Minute Timer Bomb [MISSION IMPOSSIBLE] \uD83D\uDCA3.mp3"));
+  music.preload = "auto";
+  music.volume = 0.32;
+  function stopMusic() {
+    music.pause();
+    try { music.currentTime = 0; } catch (e) {}
+  }
   function startMusic() {
     stopMusic();
-    const master = audioCtx.createGain();
-    master.gain.value = 1;
-    master.connect(audioCtx.destination);
-    const melody = [523.25, 659.25, 783.99, 1046.5, 880, 698.46, 783.99, 659.25];
-    const bass = [130.81, 196, 174.61, 196];
-    const step = 0.25;
-    const phrase = melody.length * step;
-    const t0 = audioCtx.currentTime + 0.05;
-    const until = t0 + 19.75;
-    const oscs = [];
-    function tone(freq, when, dur, peak, type) {
-      if (when >= until) return;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, when);
-      gain.gain.setValueAtTime(0.0001, when);
-      gain.gain.exponentialRampToValueAtTime(peak, when + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, when + dur);
-      osc.connect(gain);
-      gain.connect(master);
-      osc.start(when);
-      osc.stop(when + dur + 0.02);
-      oscs.push(osc);
-    }
-    for (let t = t0; t < until; t += phrase) {
-      melody.forEach((freq, i) => tone(freq, t + i * step, 0.2, 0.055, "triangle"));
-      bass.forEach((freq, i) => tone(freq, t + i * 0.5, 0.22, 0.04, "sine"));
-    }
-    stopMusic = function () {
-      try { master.gain.setValueAtTime(0.0001, audioCtx.currentTime); } catch (e) {}
-      oscs.forEach((osc) => { try { osc.stop(); } catch (e) {} });
-      try { master.disconnect(); } catch (e) {}
-      stopMusic = function () {};
-    };
+    music.volume = 0.32;
+    const playing = music.play();
+    if (playing && playing.catch) playing.catch(function () {});
   }
   function beep(freq, dur) {
     if (!audioCtx || audioCtx.state === "closed") return;
@@ -893,7 +867,10 @@ function setupLightSign() {
       lightTimers.push(setTimeout(() => el.classList.add("on"), delay));
     });
     [17, 18, 19].forEach((sec, i) => {
-      lightTimers.push(setTimeout(() => beep(700 + i * 90, 0.12), sec * 1000));
+      lightTimers.push(setTimeout(() => {
+        if (sec === 17) stopMusic();
+        beep(700 + i * 90, 0.12);
+      }, sec * 1000));
     });
     lightTimers.push(setTimeout(() => {
       stopMusic();
